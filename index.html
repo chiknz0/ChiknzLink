@@ -42,6 +42,7 @@
         .hero-height {
             min-height: calc(100vh - 80px);
         }
+        
         /* FAQ Dropdown Logic */
         .faq-content {
             max-height: 0;
@@ -55,6 +56,24 @@
             transform: rotate(180deg);
         }
 
+        /* Modal Styles */
+        #auth-modal {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        #auth-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-container {
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #auth-modal.active .modal-container {
+            transform: scale(1);
+        }
+
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
@@ -63,6 +82,35 @@
     </style>
 </head>
 <body class="font-sans selection:bg-purple-500/30">
+
+    <!-- Auth Modal UI -->
+    <div id="auth-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="toggleModal(false)"></div>
+        
+        <!-- Modal Box -->
+        <div class="modal-container glass-box w-full max-w-md p-10 rounded-[2.5rem] relative z-10 text-center space-y-6">
+            <button onclick="toggleModal(false)" class="absolute top-6 right-6 text-slate-500 hover:text-white transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+
+            <div class="w-16 h-16 bg-purple-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+            </div>
+
+            <div class="space-y-2">
+                <h3 class="text-3xl font-black text-white">Welcome Back</h3>
+                <p class="text-slate-400 text-sm">Join the ChiknzLink coop and start managing your links professionally.</p>
+            </div>
+
+            <button id="google-login-btn" class="w-full bg-white text-slate-900 flex items-center justify-center gap-3 py-4 rounded-2xl font-bold hover:bg-slate-100 transition shadow-xl">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" alt="Google">
+                Sign in with Google
+            </button>
+
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest pt-4">Secure & Fast Authentication</p>
+        </div>
+    </div>
 
     <!-- Navigation -->
     <nav class="bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-800 py-4 px-6 flex justify-between items-center">
@@ -84,7 +132,6 @@
         <!-- HOME PAGE -->
         <div id="page-home" class="page-section">
             <div class="flex flex-col lg:flex-row items-center gap-16 hero-height py-12 hero-section rounded-[3rem] mt-4 px-12">
-                <!-- Left: Description -->
                 <div class="w-full lg:w-1/2 space-y-8 fade-in-section">
                     <h1 class="text-6xl md:text-7xl font-black leading-none text-white">
                         Simplify <br><span class="text-purple-400">Your</span> <br>Links.
@@ -94,7 +141,6 @@
                     </p>
                 </div>
 
-                <!-- Right: Shortener UI Box -->
                 <div class="w-full lg:w-1/2 fade-in-section">
                     <div class="white-box p-10 rounded-[2.5rem] space-y-8 relative">
                         <h2 class="text-2xl font-bold text-slate-900">Shorten URL</h2>
@@ -124,11 +170,10 @@
                 </div>
             </div>
 
-            <!-- FAQ SECTION (DROPDOWN) -->
+            <!-- FAQ SECTION -->
             <div class="py-24 fade-in-section max-w-3xl mx-auto">
                 <h3 class="text-4xl font-black text-center mb-16">Frequently Asked Questions</h3>
                 <div class="space-y-4">
-                    <!-- Q1 -->
                     <div class="faq-item glass-box rounded-2xl overflow-hidden cursor-pointer" onclick="toggleFaq(this)">
                         <div class="p-6 flex justify-between items-center select-none">
                             <h4 class="font-bold text-lg text-purple-400">Is it free?</h4>
@@ -140,7 +185,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Q2 -->
                     <div class="faq-item glass-box rounded-2xl overflow-hidden cursor-pointer" onclick="toggleFaq(this)">
                         <div class="p-6 flex justify-between items-center select-none">
                             <h4 class="font-bold text-lg text-purple-400">What is Pro Bucket?</h4>
@@ -152,7 +196,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Q3 -->
                     <div class="faq-item glass-box rounded-2xl overflow-hidden cursor-pointer" onclick="toggleFaq(this)">
                         <div class="p-6 flex justify-between items-center select-none">
                             <h4 class="font-bold text-lg text-purple-400">Do links expire?</h4>
@@ -161,18 +204,6 @@
                         <div class="faq-content">
                             <div class="px-6 pb-6 text-slate-400">
                                 No, your links stay active permanently as long as the ChiknzLink service is running.
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Q4 -->
-                    <div class="faq-item glass-box rounded-2xl overflow-hidden cursor-pointer" onclick="toggleFaq(this)">
-                        <div class="p-6 flex justify-between items-center select-none">
-                            <h4 class="font-bold text-lg text-purple-400">How do Custom Domains work?</h4>
-                            <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </div>
-                        <div class="faq-content">
-                            <div class="px-6 pb-6 text-slate-400">
-                                You can point your own domain (e.g., links.yourbrand.com) to our IP addresses to maintain your brand identity on every link you share.
                             </div>
                         </div>
                     </div>
@@ -232,14 +263,6 @@
                 </div>
             </div>
 
-            <div class="glass-box p-8 rounded-3xl space-y-4">
-                <h3 class="font-bold">Branded Domains</h3>
-                <div class="flex gap-4">
-                    <input type="text" id="domainInput" placeholder="links.mybrand.com" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-500">
-                    <button id="add-domain-btn" class="bg-white text-slate-950 px-6 py-3 rounded-xl font-bold hover:bg-slate-200 transition text-sm">Add Domain</button>
-                </div>
-            </div>
-
             <div class="glass-box rounded-3xl overflow-hidden">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-slate-800/50 text-slate-500">
@@ -270,10 +293,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, query, where, onSnapshot, getCountFromServer, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
-        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyAcdU6EizonhGJAYM2cIUZdJk3S3Wsx9lA",
             authDomain: "chiknzlink.firebaseapp.com",
@@ -290,26 +312,65 @@
         const provider = new GoogleAuthProvider();
 
         let user = null;
-        const LAUNCH_DATE = new Date();
+        const LAUNCH_DATE = new Date('2026-01-01');
 
-        // UI Helpers
-        window.toggleFaq = (el) => {
-            el.classList.toggle('active');
+        // Modal State Management
+        window.toggleModal = (show) => {
+            const modal = document.getElementById('auth-modal');
+            if (show) {
+                modal.classList.add('active');
+            } else {
+                modal.classList.remove('active');
+            }
         };
 
+        // Escape key to close modal
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') toggleModal(false);
+        });
+
+        // Trigger Google Login logic
+        async function startLogin() {
+            try {
+                toggleModal(false); // Hide UI before popup
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.warn("Popup blocked, trying redirect:", error.code);
+                if (error.code === 'auth/popup-blocked') {
+                    await signInWithRedirect(auth, provider);
+                }
+            }
+        }
+
+        // Global Navigation & Auth Handlers
+        window.handleAuthAction = async () => {
+            if (user) {
+                await signOut(auth);
+            } else {
+                toggleModal(true); // Show custom UI instead of direct popup
+            }
+        };
+
+        // Listeners
+        document.getElementById('auth-btn').addEventListener('click', handleAuthAction);
+        document.getElementById('google-login-btn').addEventListener('click', startLogin);
+
+        // UI Helpers
+        window.toggleFaq = (el) => el.classList.toggle('active');
         document.getElementById('current-year').innerText = new Date().getFullYear();
         
-        function updateStats() {
+        async function updateStats() {
             const now = new Date();
-            const years = now.getFullYear() - LAUNCH_DATE.getFullYear();
+            const years = Math.max(0, now.getFullYear() - LAUNCH_DATE.getFullYear());
             document.getElementById('platform-age-main').innerText = `${years} Years`;
-            
-            getCountFromServer(collection(db, "links")).then(snapshot => {
+            try {
+                const snapshot = await getCountFromServer(collection(db, "links"));
                 document.getElementById('total-links-count').innerText = snapshot.data().count.toLocaleString();
-            });
+            } catch (e) { console.error(e); }
         }
         updateStats();
 
+        // Reveal animations
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) entry.target.classList.add('is-visible');
@@ -317,6 +378,7 @@
         }, { threshold: 0.1 });
         document.querySelectorAll('.fade-in-section').forEach(el => observer.observe(el));
 
+        // Auth Observer
         onAuthStateChanged(auth, (u) => {
             user = u;
             document.getElementById('auth-btn').innerText = u ? 'Logout' : 'Login';
@@ -324,34 +386,36 @@
             if (u) loadDashboard();
         });
 
-        document.getElementById('auth-btn').addEventListener('click', () => {
-            user ? signOut(auth) : signInWithPopup(auth, provider);
-        });
-
+        // Shorten logic
         document.getElementById('shorten-btn').addEventListener('click', async () => {
-            const longUrl = document.getElementById('longUrl').value;
+            const longUrlInput = document.getElementById('longUrl');
+            const longUrl = longUrlInput.value;
             if (!longUrl) return;
+            
             const id = Math.random().toString(36).substring(2, 8);
-            await setDoc(doc(db, "links", id), {
-                longUrl,
-                userId: user ? user.uid : 'guest',
-                clicks: 0,
-                createdAt: serverTimestamp()
-            });
-            const short = `${window.location.origin}${window.location.pathname}?id=${id}`;
-            document.getElementById('shortResult').innerText = short;
-            document.getElementById('result-box').classList.remove('hidden');
-            updateStats();
+            try {
+                await setDoc(doc(db, "links", id), {
+                    longUrl,
+                    userId: user ? user.uid : 'guest',
+                    clicks: 0,
+                    createdAt: serverTimestamp()
+                });
+                const short = `${window.location.origin}${window.location.pathname}?id=${id}`;
+                document.getElementById('shortResult').innerText = short;
+                document.getElementById('result-box').classList.remove('hidden');
+                updateStats();
+            } catch (e) { console.error(e); }
         });
 
         function loadDashboard() {
+            if (!user) return;
             const q = query(collection(db, "links"), where("userId", "==", user.uid));
             onSnapshot(q, (snap) => {
                 const body = document.getElementById('links-table-body');
                 body.innerHTML = '';
                 snap.forEach(d => {
                     body.innerHTML += `
-                        <tr class="border-t border-slate-800">
+                        <tr class="border-t border-slate-800 hover:bg-slate-800/20 transition">
                             <td class="p-5 font-bold text-purple-400">${d.id}</td>
                             <td class="p-5 text-right font-black">${d.data().clicks || 0}</td>
                         </tr>`;
@@ -366,12 +430,27 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
+        // Redirection
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('id')) {
             getDoc(doc(db, "links", urlParams.get('id'))).then(snap => {
                 if (snap.exists()) window.location.href = snap.data().longUrl;
             });
         }
+
+        // Clipboard
+        document.getElementById('copy-btn').addEventListener('click', () => {
+            const text = document.getElementById('shortResult').innerText;
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            const btn = document.getElementById('copy-btn');
+            btn.innerText = "COPIED!";
+            setTimeout(() => btn.innerText = "COPY", 2000);
+        });
     </script>
 </body>
 </html>
