@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChiknzLink | Professional URL Shortener</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #a855f7;
+            --primary-hover: #9333ea;
+        }
+        body {
+            background-color: #0f172a;
+            color: #f1f5f9;
+            scroll-behavior: smooth;
+        }
+        .hero-section {
+            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.9)), url('https://i.postimg.cc/wx2T45vs/night-sky-6245049-640.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        .glass-box {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .white-box {
+            background: white;
+            color: #1e293b;
+        }
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .hero-height {
+            min-height: calc(100vh - 80px);
+        }
+        /* FAQ Dropdown Logic */
+        .faq-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .faq-item.active .faq-content {
+            max-height: 200px;
+        }
+        .faq-item.active svg {
+            transform: rotate(180deg);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="font-sans selection:bg-purple-500/30">
+
+    <!-- Navigation -->
+    <nav class="bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-800 py-4 px-6 flex justify-between items-center">
+        <div class="text-2xl font-black tracking-tighter flex items-center gap-2 text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            CHIKNZ<span class="text-purple-500">LINK</span>
+        </div>
+        <div class="hidden md:flex space-x-8 text-sm font-semibold items-center">
+            <button onclick="navigate('home')" class="text-slate-400 hover:text-white transition">Home</button>
+            <button onclick="navigate('prices')" class="text-slate-400 hover:text-white transition">Prices</button>
+            <button onclick="navigate('about')" class="text-slate-400 hover:text-white transition">About</button>
+            <button id="nav-dash" onclick="navigate('dashboard')" class="hidden text-slate-400 hover:text-white transition">Dashboard</button>
+            <button id="auth-btn" class="bg-purple-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-purple-500 transition shadow-lg shadow-purple-900/20">Login</button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 max-w-6xl">
+
+        <!-- HOME PAGE -->
+        <div id="page-home" class="page-section">
+            <div class="flex flex-col lg:flex-row items-center gap-16 hero-height py-12 hero-section rounded-[3rem] mt-4 px-12">
+                <!-- Left: Description -->
+                <div class="w-full lg:w-1/2 space-y-8 fade-in-section">
+                    <h1 class="text-6xl md:text-7xl font-black leading-none text-white">
+                        Simplify <br><span class="text-purple-400">Your</span> <br>Links.
+                    </h1>
+                    <p class="text-slate-300 text-xl leading-relaxed max-w-md">
+                        The professional way to share. ChiknzLink turns long, messy URLs into high-converting branded links.
+                    </p>
+                </div>
+
+                <!-- Right: Shortener UI Box -->
+                <div class="w-full lg:w-1/2 fade-in-section">
+                    <div class="white-box p-10 rounded-[2.5rem] space-y-8 relative">
+                        <h2 class="text-2xl font-bold text-slate-900">Shorten URL</h2>
+                        <div class="space-y-4">
+                            <input type="url" id="longUrl" placeholder="https://your-long-link.com/..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all">
+                            <button id="shorten-btn" class="w-full bg-purple-600 text-white font-black py-5 rounded-2xl hover:bg-purple-700 transition active:scale-[0.98]">Shorten Now</button>
+                        </div>
+                        <div id="result-box" class="hidden p-5 bg-purple-50 border border-purple-100 rounded-2xl flex justify-between items-center">
+                            <span id="shortResult" class="font-mono text-purple-700 truncate mr-4 text-sm font-bold"></span>
+                            <button id="copy-btn" class="text-xs bg-purple-600 text-white px-4 py-2 rounded-xl font-bold">COPY</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIVE STATS SECTION -->
+            <div class="py-12 fade-in-section">
+                <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                    <div class="glass-box p-8 rounded-3xl text-center">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Live URLs Created</p>
+                        <p id="total-links-count" class="text-4xl font-black text-purple-400">0</p>
+                    </div>
+                    <div class="glass-box p-8 rounded-3xl text-center">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Platform Age</p>
+                        <p id="platform-age-main" class="text-4xl font-black text-white">0 Years</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ SECTION (DROPDOWN) -->
+            <div class="py-24 fade-in-section max-w-3xl mx-auto">
+                <h3 class="text-4xl font-black text-center mb-16">Frequently Asked Questions</h3>
+                <div class="space-y-4">
+                    <!-- Q1 -->
+                    <div class="faq-item glass-box rounded-2xl overflow-hidden cursor-pointer" onclick="toggleFaq(this)">
+                        <div class="p-6 flex justify-between items-center select-none">
+                            <h4 class="font-bold text-lg text-purple-400">Is it free?</h4>
+                            <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                        <div class="faq-content">
+                            <div class="px-6 pb-6 text-slate-400">
+                                Yes! Our Free Wing plan allows up to 10 links per month and 1 custom domain at absolutely no cost.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Q2 -->
+                    <div class="faq-item glass-box rounded-2xl overflow-hidden cursor-pointer" onclick="toggleFaq(this)">
+                        <div class="p-6 flex justify-between items-center select-none">
+                            <h4 class="font-bold text-lg text-purple-400">What is Pro Bucket?</h4>
+                            <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                        <div class="faq-content">
+                            <div class="px-6 pb-6 text-slate-400">
+                                Pro Bucket is our premium plan. For $6.99/mo, you get 200 links per month, 3 custom domains, and advanced analytics.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Q3 -->
+                    <div class="faq-item glass-box rounded-2xl overflow-hidden cursor-pointer" onclick="toggleFaq(this)">
+                        <div class="p-6 flex justify-between items-center select-none">
+                            <h4 class="font-bold text-lg text-purple-400">Do links expire?</h4>
+                            <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                        <div class="faq-content">
+                            <div class="px-6 pb-6 text-slate-400">
+                                No, your links stay active permanently as long as the ChiknzLink service is running.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Q4 -->
+                    <div class="faq-item glass-box rounded-2xl overflow-hidden cursor-pointer" onclick="toggleFaq(this)">
+                        <div class="p-6 flex justify-between items-center select-none">
+                            <h4 class="font-bold text-lg text-purple-400">How do Custom Domains work?</h4>
+                            <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                        <div class="faq-content">
+                            <div class="px-6 pb-6 text-slate-400">
+                                You can point your own domain (e.g., links.yourbrand.com) to our IP addresses to maintain your brand identity on every link you share.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABOUT PAGE -->
+        <div id="page-about" class="page-section hidden py-24 max-w-3xl mx-auto space-y-12">
+            <h2 class="text-5xl font-black text-center">About Us</h2>
+            <div class="glass-box p-12 rounded-[3rem] space-y-6 text-slate-300 leading-relaxed text-lg">
+                <p>ChiknzLink was founded in 2026 with a simple mission: make sharing links more professional and manageable for everyone.</p>
+                <p>We believe that your links are an extension of your brand. Whether you're a content creator, a small business, or just sharing with friends, our tools are built to be fast, reliable, and beautiful.</p>
+                <div class="pt-6 border-t border-slate-700 flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-white text-2xl">The Team</p>
+                        <p class="text-slate-500">ChiknzLink HQ</p>
+                    </div>
+                    <div class="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center font-black text-white italic">CL</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRICES PAGE -->
+        <div id="page-prices" class="page-section hidden py-24 space-y-12">
+            <h2 class="text-5xl font-black text-center">Simple Pricing</h2>
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div class="glass-box p-12 rounded-[3rem] border-slate-700">
+                    <h3 class="text-slate-400 uppercase tracking-widest font-bold">Free Wing</h3>
+                    <p class="text-5xl font-black my-6 text-white">$0</p>
+                    <ul class="space-y-4 text-slate-400">
+                        <li>• 10 Links per month</li>
+                        <li>• 1 Custom domain</li>
+                        <li>• Basic tracking</li>
+                    </ul>
+                </div>
+                <div class="glass-box p-12 rounded-[3rem] border-purple-500 bg-purple-950/20">
+                    <h3 class="text-purple-400 uppercase tracking-widest font-bold">Pro Bucket</h3>
+                    <p class="text-5xl font-black my-6 text-white">$6.99</p>
+                    <ul class="space-y-4 text-slate-300">
+                        <li>• 200 Links per month</li>
+                        <li>• 3 Custom domains</li>
+                        <li>• Advanced Analytics</li>
+                    </ul>
+                    <button class="w-full mt-8 bg-purple-600 py-4 rounded-2xl font-black text-white hover:bg-purple-500 transition">Go Pro</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD PAGE -->
+        <div id="page-dashboard" class="page-section hidden py-12 space-y-8">
+            <div class="flex justify-between items-center">
+                <h2 class="text-4xl font-black">My Dashboard</h2>
+                <div class="flex gap-4">
+                    <span id="usage-stats" class="bg-purple-900/40 text-purple-400 px-4 py-2 rounded-full text-xs font-bold">Links: 0/10</span>
+                    <span id="domain-stats" class="bg-slate-800 text-slate-400 px-4 py-2 rounded-full text-xs font-bold">Domains: 0/1</span>
+                </div>
+            </div>
+
+            <div class="glass-box p-8 rounded-3xl space-y-4">
+                <h3 class="font-bold">Branded Domains</h3>
+                <div class="flex gap-4">
+                    <input type="text" id="domainInput" placeholder="links.mybrand.com" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-500">
+                    <button id="add-domain-btn" class="bg-white text-slate-950 px-6 py-3 rounded-xl font-bold hover:bg-slate-200 transition text-sm">Add Domain</button>
+                </div>
+            </div>
+
+            <div class="glass-box rounded-3xl overflow-hidden">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-800/50 text-slate-500">
+                        <tr>
+                            <th class="p-5 font-bold">Short Link</th>
+                            <th class="p-5 font-bold text-right">Clicks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="links-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="mt-24 py-12 border-t border-slate-800 text-center space-y-6">
+        <div class="flex justify-center gap-8 text-slate-500 font-medium text-sm">
+            <button onclick="navigate('home')">Home</button>
+            <button onclick="navigate('prices')">Pricing</button>
+            <button onclick="navigate('about')">About</button>
+        </div>
+        <div class="flex flex-col items-center gap-2">
+            <p class="text-slate-600 text-xs uppercase tracking-widest">
+                &copy; ChiknzLink <span id="current-year"></span>
+            </p>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, where, onSnapshot, getCountFromServer, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAcdU6EizonhGJAYM2cIUZdJk3S3Wsx9lA",
+            authDomain: "chiknzlink.firebaseapp.com",
+            projectId: "chiknzlink",
+            storageBucket: "chiknzlink.firebasestorage.app",
+            messagingSenderId: "60632449005",
+            appId: "1:60632449005:web:88f59680a94886fdda31e4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        let user = null;
+        const LAUNCH_DATE = new Date();
+
+        // UI Helpers
+        window.toggleFaq = (el) => {
+            el.classList.toggle('active');
+        };
+
+        document.getElementById('current-year').innerText = new Date().getFullYear();
+        
+        function updateStats() {
+            const now = new Date();
+            const years = now.getFullYear() - LAUNCH_DATE.getFullYear();
+            document.getElementById('platform-age-main').innerText = `${years} Years`;
+            
+            getCountFromServer(collection(db, "links")).then(snapshot => {
+                document.getElementById('total-links-count').innerText = snapshot.data().count.toLocaleString();
+            });
+        }
+        updateStats();
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('is-visible');
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.fade-in-section').forEach(el => observer.observe(el));
+
+        onAuthStateChanged(auth, (u) => {
+            user = u;
+            document.getElementById('auth-btn').innerText = u ? 'Logout' : 'Login';
+            document.getElementById('nav-dash').classList.toggle('hidden', !u);
+            if (u) loadDashboard();
+        });
+
+        document.getElementById('auth-btn').addEventListener('click', () => {
+            user ? signOut(auth) : signInWithPopup(auth, provider);
+        });
+
+        document.getElementById('shorten-btn').addEventListener('click', async () => {
+            const longUrl = document.getElementById('longUrl').value;
+            if (!longUrl) return;
+            const id = Math.random().toString(36).substring(2, 8);
+            await setDoc(doc(db, "links", id), {
+                longUrl,
+                userId: user ? user.uid : 'guest',
+                clicks: 0,
+                createdAt: serverTimestamp()
+            });
+            const short = `${window.location.origin}${window.location.pathname}?id=${id}`;
+            document.getElementById('shortResult').innerText = short;
+            document.getElementById('result-box').classList.remove('hidden');
+            updateStats();
+        });
+
+        function loadDashboard() {
+            const q = query(collection(db, "links"), where("userId", "==", user.uid));
+            onSnapshot(q, (snap) => {
+                const body = document.getElementById('links-table-body');
+                body.innerHTML = '';
+                snap.forEach(d => {
+                    body.innerHTML += `
+                        <tr class="border-t border-slate-800">
+                            <td class="p-5 font-bold text-purple-400">${d.id}</td>
+                            <td class="p-5 text-right font-black">${d.data().clicks || 0}</td>
+                        </tr>`;
+                });
+                document.getElementById('usage-stats').innerText = `Links: ${snap.size}/10`;
+            });
+        }
+
+        window.navigate = (id) => {
+            document.querySelectorAll('.page-section').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`page-${id}`).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('id')) {
+            getDoc(doc(db, "links", urlParams.get('id'))).then(snap => {
+                if (snap.exists()) window.location.href = snap.data().longUrl;
+            });
+        }
+    </script>
+</body>
+</html>
