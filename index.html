@@ -18,21 +18,22 @@
             scroll-behavior: smooth;
             overflow-x: hidden;
             min-height: 100vh;
+            margin: 0;
         }
         
-        .video-bg-container {
+        /* Static Image Background - Restored */
+        .bg-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; overflow: hidden;
-            background-color: #0f172a; /* Fallback color */
+            z-index: -1;
+            background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
-        .video-bg-container video {
-            min-width: 100%; min-height: 100%;
-            object-fit: cover; opacity: 0.4;
-        }
-        .video-overlay {
+        .bg-overlay {
             position: absolute; inset: 0;
-            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.8), #0f172a);
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.85), #0f172a);
         }
 
         .glass-box {
@@ -46,17 +47,20 @@
             color: #1e293b;
             backdrop-filter: blur(8px);
         }
+
+        /* FIXED: Changed opacity to 1 so UI is never blank */
         .fade-in-section {
-            opacity: 0;
-            transform: translateY(20px);
+            opacity: 1;
+            transform: translateY(0);
             transition: opacity 0.6s ease-out, transform 0.6s ease-out;
         }
         .fade-in-section.is-visible {
             opacity: 1;
             transform: translateY(0);
         }
+
         .hero-height {
-            min-height: 80vh; /* Changed from calc for better mobile/GH compatibility */
+            min-height: 80vh;
         }
         
         #auth-modal {
@@ -110,12 +114,8 @@
 
     <div id="toast" class="toast glass-box"></div>
 
-    <div class="video-bg-container">
-        <!-- Replaced with a more standard placeholder video URL often used for testing -->
-        <video autoplay muted loop playsinline poster="https://i.postimg.cc/wx2T45vs/night-sky-6245049-640.jpg">
-            <source src="https://assets.mixkit.co/videos/preview/mixkit-stars-in-the-night-sky-11604-large.mp4" type="video/mp4">
-        </video>
-        <div class="video-overlay"></div>
+    <div class="bg-container">
+        <div class="bg-overlay"></div>
     </div>
 
     <!-- Auth Modal -->
@@ -193,7 +193,7 @@
 
                             <button id="shorten-btn" class="w-full bg-purple-600 text-white font-black py-5 rounded-2xl hover:bg-purple-700 transition active:scale-[0.98] shadow-lg shadow-purple-200">Shorten Now</button>
                         </div>
-                        <div id="result-box" class="hidden p-5 bg-purple-50 border border-purple-100 rounded-2xl flex justify-between items-center animate-bounce-in">
+                        <div id="result-box" class="hidden p-5 bg-purple-50 border border-purple-100 rounded-2xl flex justify-between items-center">
                             <span id="shortResult" class="font-mono text-purple-700 truncate mr-4 text-sm font-bold"></span>
                             <button id="copy-btn" class="text-xs bg-purple-600 text-white px-4 py-2 rounded-xl font-bold flex-shrink-0">COPY</button>
                         </div>
@@ -220,7 +220,7 @@
                 <h2 class="text-5xl font-black text-center text-white">About Us</h2>
                 <div class="glass-box p-12 rounded-[3rem] space-y-6 text-slate-300 leading-relaxed text-lg text-center">
                     <p>ChiknzLink was founded in 2026 with a simple mission: make sharing links more professional and manageable for everyone.</p>
-                    <p>We believe that your links are an extension of your brand. Whether you're a content creator, a small business, or just sharing with friends, our tools are built to be fast, reliable, and beautiful.</p>
+                    <p>We believe that your links are an extension of your brand. Our tools are built to be fast, reliable, and beautiful.</p>
                 </div>
             </div>
 
@@ -233,14 +233,7 @@
                             <h4 class="font-bold text-lg text-purple-400">Is it free?</h4>
                             <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </div>
-                        <div class="faq-content"><div class="px-6 pb-6 text-slate-400">Yes! Our Free Wing plan allows up to 10 links per month and 1 custom domain at absolutely no cost.</div></div>
-                    </div>
-                    <div class="faq-item glass-box rounded-2xl overflow-hidden cursor-pointer" onclick="toggleFaq(this)">
-                        <div class="p-6 flex justify-between items-center select-none">
-                            <h4 class="font-bold text-lg text-purple-400">What is Pro Bucket?</h4>
-                            <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </div>
-                        <div class="faq-content"><div class="px-6 pb-6 text-slate-400">Pro Bucket is our premium plan. For $6.99/mo, you get 200 links per month, 3 custom domains, and advanced analytics.</div></div>
+                        <div class="faq-content"><div class="px-6 pb-6 text-slate-400">Yes! Our Free Wing plan allows up to 10 links per month.</div></div>
                     </div>
                 </div>
             </div>
@@ -248,43 +241,29 @@
 
         <!-- Dashboard Page -->
         <div id="page-dashboard" class="page-section hidden py-12 space-y-8">
-            <div class="flex justify-between items-center">
-                <h2 class="text-4xl font-black text-white">My Dashboard</h2>
-                <div class="flex gap-4">
-                    <span id="usage-stats" class="bg-purple-900/40 text-purple-400 px-4 py-2 rounded-full text-xs font-bold">Links: 0/10</span>
-                </div>
-            </div>
-
+            <h2 class="text-4xl font-black text-white">My Dashboard</h2>
             <div class="glass-box p-8 rounded-3xl space-y-6">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="text-xl font-bold text-white">Connect Your Subdomain</h3>
-                        <p class="text-slate-400 text-sm">Example: <span class="text-purple-400">yourname</span>.github.chiknz.link</p>
-                    </div>
-                    <span id="domain-limit-stats" class="text-xs font-bold bg-slate-800 px-3 py-1 rounded-full text-slate-400">0 / 1 used</span>
-                </div>
+                <h3 class="text-xl font-bold text-white">Connect Your Subdomain</h3>
                 <div class="flex flex-col md:flex-row gap-4 items-center">
                     <div class="flex-1 flex items-center bg-slate-900/50 border border-slate-700 rounded-2xl px-6 py-4 focus-within:border-purple-500 transition w-full">
                         <input type="text" id="domain-input" placeholder="subdomain" class="bg-transparent border-none outline-none text-white w-full">
                         <span class="text-slate-500 font-mono">.github.chiknz.link</span>
                     </div>
-                    <button id="add-domain-btn" class="bg-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-purple-500 transition shadow-lg shadow-purple-900/20 w-full md:w-auto">Add Subdomain</button>
+                    <button id="add-domain-btn" class="bg-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-purple-500 transition shadow-lg w-full md:w-auto">Add Subdomain</button>
                 </div>
                 <div id="active-domains-list" class="space-y-3 pt-4"></div>
             </div>
 
             <div class="glass-box rounded-3xl overflow-hidden shadow-2xl">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-800/50 text-slate-500">
-                            <tr>
-                                <th class="p-6 font-bold uppercase tracking-wider">Short Link</th>
-                                <th class="p-6 font-bold uppercase tracking-wider text-right">Clicks</th>
-                            </tr>
-                        </thead>
-                        <tbody id="links-table-body" class="divide-y divide-slate-800"></tbody>
-                    </table>
-                </div>
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-800/50 text-slate-500">
+                        <tr>
+                            <th class="p-6 font-bold uppercase tracking-wider">Short Link</th>
+                            <th class="p-6 font-bold uppercase tracking-wider text-right">Clicks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="links-table-body" class="divide-y divide-slate-800"></tbody>
+                </table>
             </div>
         </div>
 
@@ -292,52 +271,38 @@
         <div id="page-prices" class="page-section hidden py-24 space-y-12">
             <h2 class="text-5xl font-black text-center text-white">Simple Pricing</h2>
             <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                <div class="glass-box p-12 rounded-[3rem] border-slate-700">
-                    <h3 class="text-slate-400 uppercase tracking-widest font-bold">Free Wing</h3>
+                <div class="glass-box p-12 rounded-[3rem]">
+                    <h3 class="text-slate-400 font-bold uppercase tracking-widest">Free Wing</h3>
                     <p class="text-5xl font-black my-6 text-white">$0</p>
                     <ul class="space-y-4 text-slate-400">
                         <li>• 10 Links per month</li>
                         <li>• 1 Custom domain</li>
-                        <li>• Basic tracking</li>
                     </ul>
                 </div>
-                <div class="glass-box p-12 rounded-[3rem] border-purple-500 bg-purple-950/20 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-purple-500 text-white px-6 py-1 text-xs font-black rounded-bl-xl">POPULAR</div>
-                    <h3 class="text-purple-400 uppercase tracking-widest font-bold">Pro Bucket</h3>
+                <div class="glass-box p-12 rounded-[3rem] border-purple-500 bg-purple-950/20">
+                    <h3 class="text-purple-400 font-bold uppercase tracking-widest">Pro Bucket</h3>
                     <p class="text-5xl font-black my-6 text-white">$6.99</p>
                     <ul class="space-y-4 text-slate-300">
                         <li>• 200 Links per month</li>
                         <li>• 3 Custom domains</li>
-                        <li>• Advanced Analytics</li>
                     </ul>
-                    <button class="w-full mt-8 bg-purple-600 py-4 rounded-2xl font-black text-white hover:bg-purple-500 transition">Go Pro</button>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer class="mt-24 py-12 border-t border-white/5 text-center space-y-6 relative z-10">
-        <div class="flex justify-center gap-8 text-slate-400 font-medium text-sm">
-            <button onclick="navigate('home')">Home</button>
-            <button onclick="navigate('prices')">Pricing</button>
-        </div>
+    <footer class="mt-24 py-12 border-t border-white/5 text-center relative z-10">
         <p class="text-slate-600 text-xs uppercase tracking-widest">&copy; ChiknzLink <span id="current-year"></span></p>
     </footer>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithCredential } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot, getCountFromServer, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut, signInAnonymously, signInWithCredential, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, onSnapshot, getCountFromServer, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
-        // Global environment variables
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'chiknzlink-default';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "", 
-            authDomain: "chiknzlink.firebaseapp.com",
-            projectId: "chiknzlink",
-            storageBucket: "chiknzlink.firebasestorage.app",
-            messagingSenderId: "60632449005",
-            appId: "1:60632449005:web:88f59680a94886fdda31e4"
+            apiKey: "", authDomain: "chiknzlink.firebaseapp.com", projectId: "chiknzlink"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -345,11 +310,8 @@
         const db = getFirestore(app);
         
         let currentUser = null;
-        let unsubscribeLinks = null;
-        let unsubscribeDomains = null;
         const LAUNCH_DATE = new Date('2026-01-16');
-
-        const ACTUAL_CLIENT_ID = "60632449005-14pkjb4oi8jcanf487v57pst7dibgq01.apps.googleusercontent.com"; 
+        const CLIENT_ID = "60632449005-14pkjb4oi8jcanf487v57pst7dibgq01.apps.googleusercontent.com";
 
         function showToast(msg) {
             const toast = document.getElementById('toast');
@@ -360,78 +322,31 @@
 
         window.toggleModal = (show) => {
             const modal = document.getElementById('auth-modal');
-            if (show) {
-                modal.classList.add('active');
-                initGoogleButton();
-            } else {
-                modal.classList.remove('active');
+            modal.classList.toggle('active', show);
+            if (show && window.google) {
+                google.accounts.id.initialize({ client_id: CLIENT_ID, callback: handleCredentialResponse });
+                google.accounts.id.renderButton(document.getElementById("google-btn"), { theme: "outline", size: "large", shape: "pill" });
             }
         };
 
-        function initGoogleButton() {
-            if (window.google && google.accounts.id) {
-                try {
-                    google.accounts.id.initialize({
-                        client_id: ACTUAL_CLIENT_ID,
-                        callback: handleCredentialResponse
-                    });
-                    google.accounts.id.renderButton(
-                        document.getElementById("google-btn"),
-                        { theme: "outline", size: "large", shape: "pill", width: 280, text: "continue_with" }
-                    );
-                } catch (err) {
-                    console.error("GSI Init Error:", err);
-                }
-            }
-        }
-
         async function handleCredentialResponse(response) {
-            try {
-                const credential = GoogleAuthProvider.credential(response.credential);
-                await signInWithCredential(auth, credential);
-                toggleModal(false);
-                showToast("Success! You are now logged in.");
-            } catch (error) {
-                console.error("Firebase Auth Error:", error);
-                showToast("Connection Error. Please check console.");
-            }
+            const credential = GoogleAuthProvider.credential(response.credential);
+            await signInWithCredential(auth, credential);
+            toggleModal(false);
+            showToast("Logged in successfully!");
         }
 
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
-            updateUIForUser();
-            if (unsubscribeLinks) unsubscribeLinks();
-            if (unsubscribeDomains) unsubscribeDomains();
-            if (user && !user.isAnonymous) {
-                loadDashboardData();
-                loadUserDomains();
-            }
+            const isGuest = !user || user.isAnonymous;
+            document.getElementById('auth-btn').innerText = isGuest ? 'Login / Join' : 'Logout';
+            document.getElementById('nav-dash').classList.toggle('hidden', isGuest);
+            if (!isGuest) { loadDashboardData(); loadUserDomains(); }
         });
-
-        async function initAuth() {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (e) {
-                console.error("Auth init error:", e);
-            }
-        }
-
-        function updateUIForUser() {
-            const isGuest = !currentUser || currentUser.isAnonymous;
-            const authBtn = document.getElementById('auth-btn');
-            if (authBtn) authBtn.innerText = !isGuest ? 'Logout' : 'Login / Join';
-            const navDash = document.getElementById('nav-dash');
-            if (navDash) navDash.classList.toggle('hidden', isGuest);
-        }
 
         window.handleAuthAction = async () => {
             if (currentUser && !currentUser.isAnonymous) {
                 await signOut(auth);
-                showToast("Logged out safely.");
                 navigate('home');
             } else {
                 toggleModal(true);
@@ -441,50 +356,24 @@
         document.getElementById('auth-btn').addEventListener('click', handleAuthAction);
 
         function loadUserDomains() {
-            if (!currentUser || currentUser.isAnonymous) return;
-            const selector = document.getElementById('domain-selector');
-            const list = document.getElementById('active-domains-list');
-            const domainPath = `/artifacts/${appId}/users/${currentUser.uid}/domains`;
-            unsubscribeDomains = onSnapshot(collection(db, domainPath), (snap) => {
-                const domains = [];
+            onSnapshot(collection(db, `/artifacts/${appId}/users/${currentUser.uid}/domains`), (snap) => {
+                const list = document.getElementById('active-domains-list');
+                const selector = document.getElementById('domain-selector');
                 list.innerHTML = '';
                 selector.innerHTML = '<option value="github.chiknz.link">github.chiknz.link</option>';
                 snap.forEach(d => {
                     const data = d.data();
-                    domains.push({...data, id: d.id});
-                    list.innerHTML += `
-                        <div class="flex justify-between items-center bg-slate-800/30 p-4 rounded-2xl border border-white/5">
-                            <span class="font-bold text-white">${data.domain}</span>
-                            <button onclick="removeDomain('${d.id}')" class="text-red-400 text-xs">Remove</button>
-                        </div>`;
+                    list.innerHTML += `<div class="flex justify-between items-center bg-slate-800/30 p-4 rounded-2xl border border-white/5">
+                        <span class="font-bold text-white">${data.domain}</span>
+                        <button onclick="removeDomain('${d.id}')" class="text-red-400 text-xs">Remove</button>
+                    </div>`;
                     const opt = document.createElement('option');
-                    opt.value = data.domain;
-                    opt.innerText = data.domain;
-                    selector.appendChild(opt);
+                    opt.value = data.domain; opt.innerText = data.domain; selector.appendChild(opt);
                 });
-                document.getElementById('domain-limit-stats').innerText = `${domains.length} / 1 used`;
-            }, (error) => console.error("Domain Snapshot Error:", error));
+            });
         }
 
-        window.removeDomain = async (id) => { 
-            if (!currentUser || currentUser.isAnonymous || !confirm("Remove subdomain?")) return;
-            await deleteDoc(doc(db, `/artifacts/${appId}/users/${currentUser.uid}/domains`, id)); 
-        };
-
-        document.getElementById('add-domain-btn').addEventListener('click', async () => {
-            if (!currentUser || currentUser.isAnonymous) return toggleModal(true);
-            const sub = document.getElementById('domain-input').value.trim();
-            if (!sub) return;
-            const fullDomain = `${sub}.github.chiknz.link`;
-            try {
-                await setDoc(doc(db, `/artifacts/${appId}/users/${currentUser.uid}/domains`, btoa(fullDomain)), { 
-                    domain: fullDomain, 
-                    createdAt: serverTimestamp() 
-                });
-                document.getElementById('domain-input').value = '';
-                showToast("Subdomain added!");
-            } catch(e) { showToast("Error adding subdomain."); }
-        });
+        window.removeDomain = async (id) => { await deleteDoc(doc(db, `/artifacts/${appId}/users/${currentUser.uid}/domains`, id)); };
 
         document.getElementById('shorten-btn').addEventListener('click', async () => {
             if (!currentUser || currentUser.isAnonymous) return toggleModal(true);
@@ -492,86 +381,45 @@
             const domain = document.getElementById('domain-selector').value;
             if (!longUrl) return;
             const id = Math.random().toString(36).substring(2, 8);
-            const linkData = { longUrl, domain, clicks: 0, id, userId: currentUser.uid, createdAt: serverTimestamp() };
-            try {
-                await setDoc(doc(db, `/artifacts/${appId}/public/data/links`, id), linkData);
-                await setDoc(doc(db, `/artifacts/${appId}/users/${currentUser.uid}/links`, id), linkData);
-                document.getElementById('shortResult').innerText = `${domain}/${id}`;
-                document.getElementById('result-box').classList.remove('hidden');
-                updateStats();
-            } catch(e) { showToast("Error creating link."); }
+            const linkData = { longUrl, domain, id, clicks: 0, createdAt: serverTimestamp() };
+            await setDoc(doc(db, `/artifacts/${appId}/public/data/links`, id), linkData);
+            await setDoc(doc(db, `/artifacts/${appId}/users/${currentUser.uid}/links`, id), linkData);
+            document.getElementById('shortResult').innerText = `${domain}/${id}`;
+            document.getElementById('result-box').classList.remove('hidden');
         });
 
         function loadDashboardData() {
-            if (!currentUser || currentUser.isAnonymous) return;
-            const body = document.getElementById('links-table-body');
-            unsubscribeLinks = onSnapshot(collection(db, `/artifacts/${appId}/users/${currentUser.uid}/links`), (snap) => {
+            onSnapshot(collection(db, `/artifacts/${appId}/users/${currentUser.uid}/links`), (snap) => {
+                const body = document.getElementById('links-table-body');
                 body.innerHTML = '';
-                let count = 0;
                 snap.forEach(d => {
                     const data = d.data();
-                    count++;
-                    body.innerHTML += `
-                        <tr class="hover:bg-white/5">
-                            <td class="p-6 font-bold text-purple-400">
-                                <div class="text-[10px] text-slate-500 uppercase">${data.domain}</div>
-                                ${data.id}
-                            </td>
-                            <td class="p-6 text-right font-black text-white text-xl">${data.clicks || 0}</td>
-                        </tr>`;
+                    body.innerHTML += `<tr class="hover:bg-white/5"><td class="p-6 font-bold text-purple-400">
+                        <div class="text-[10px] text-slate-500">${data.domain}</div>${data.id}</td>
+                        <td class="p-6 text-right font-black text-white text-xl">${data.clicks || 0}</td></tr>`;
                 });
-                document.getElementById('usage-stats').innerText = `Links: ${count}/10`;
-            }, (error) => console.error("Links Snapshot Error:", error));
+            });
         }
 
         window.navigate = (id) => {
             document.querySelectorAll('.page-section').forEach(p => p.classList.add('hidden'));
             document.getElementById(`page-${id}`).classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        async function updateStats() {
+        window.toggleFaq = (el) => { el.classList.toggle('active'); };
+
+        window.onload = async () => {
+            await signInAnonymously(auth);
             const diffDays = Math.floor(Math.abs(new Date() - LAUNCH_DATE) / (1000 * 60 * 60 * 24));
             document.getElementById('platform-age-main').innerText = `${diffDays} Days`;
-            try {
-                if (!auth.currentUser) return;
-                const snapshot = await getCountFromServer(collection(db, 'artifacts', appId, 'public', 'data', 'links'));
-                document.getElementById('total-links-count').innerText = snapshot.data().count.toLocaleString();
-            } catch (e) { document.getElementById('total-links-count').innerText = "0"; }
-        }
-
-        window.toggleFaq = (el) => {
-            const isActive = el.classList.contains('active');
-            document.querySelectorAll('.faq-item').forEach(item => item.classList.remove('active'));
-            if (!isActive) el.classList.add('active');
-        };
-
-        window.onload = () => {
-            initAuth();
-            updateStats();
             document.getElementById('current-year').innerText = new Date().getFullYear();
-            
-            // Re-trigger intersection observer for visibility
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => { 
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('is-visible');
-                    }
-                });
-            }, { threshold: 0.1 });
-
-            document.querySelectorAll('.fade-in-section').forEach(el => observer.observe(el));
         };
 
         document.getElementById('copy-btn').addEventListener('click', () => {
             const text = document.getElementById('shortResult').innerText;
-            const el = document.createElement('textarea'); 
-            el.value = text; document.body.appendChild(el); 
-            el.select(); document.execCommand('copy'); 
-            document.body.removeChild(el);
-            const btn = document.getElementById('copy-btn'); 
-            btn.innerText = "COPIED!"; 
-            setTimeout(() => btn.innerText = "COPY", 2000);
+            const el = document.createElement('textarea'); el.value = text; document.body.appendChild(el);
+            el.select(); document.execCommand('copy'); document.body.removeChild(el);
+            showToast("Copied to clipboard!");
         });
     </script>
 </body>
