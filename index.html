@@ -300,9 +300,20 @@
         import { getAuth, onAuthStateChanged, signOut, signInAnonymously, signInWithCredential, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, collection, onSnapshot, getCountFromServer, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'chiknzlink-default';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "", authDomain: "chiknzlink.firebaseapp.com", projectId: "chiknzlink"
+        /** * PORTABILITY LAYER 
+         * This block ensures the app works on GitHub Pages, Netlify, or any other host
+         * by providing fallback credentials if the Gemini environment variables are missing.
+         */
+        const isCanvas = typeof __firebase_config !== 'undefined';
+        const appId = isCanvas ? __app_id : 'chiknzlink-pro-v1';
+        
+        const firebaseConfig = isCanvas ? JSON.parse(__firebase_config) : {
+            apiKey: "", // Add your real API Key here for standalone hosting
+            authDomain: "chiknzlink.firebaseapp.com",
+            projectId: "chiknzlink",
+            storageBucket: "chiknzlink.appspot.com",
+            messagingSenderId: "60632449005",
+            appId: "1:60632449005:web:d87537553758375"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -370,7 +381,7 @@
                     const opt = document.createElement('option');
                     opt.value = data.domain; opt.innerText = data.domain; selector.appendChild(opt);
                 });
-            });
+            }, (err) => console.error("Domain load failed:", err));
         }
 
         window.removeDomain = async (id) => { await deleteDoc(doc(db, `/artifacts/${appId}/users/${currentUser.uid}/domains`, id)); };
@@ -382,10 +393,16 @@
             if (!longUrl) return;
             const id = Math.random().toString(36).substring(2, 8);
             const linkData = { longUrl, domain, id, clicks: 0, createdAt: serverTimestamp() };
-            await setDoc(doc(db, `/artifacts/${appId}/public/data/links`, id), linkData);
-            await setDoc(doc(db, `/artifacts/${appId}/users/${currentUser.uid}/links`, id), linkData);
-            document.getElementById('shortResult').innerText = `${domain}/${id}`;
-            document.getElementById('result-box').classList.remove('hidden');
+            
+            try {
+                await setDoc(doc(db, `/artifacts/${appId}/public/data/links`, id), linkData);
+                await setDoc(doc(db, `/artifacts/${appId}/users/${currentUser.uid}/links`, id), linkData);
+                document.getElementById('shortResult').innerText = `${domain}/${id}`;
+                document.getElementById('result-box').classList.remove('hidden');
+            } catch (e) {
+                showToast("Shortening failed. Check console.");
+                console.error(e);
+            }
         });
 
         function loadDashboardData() {
@@ -398,7 +415,7 @@
                         <div class="text-[10px] text-slate-500">${data.domain}</div>${data.id}</td>
                         <td class="p-6 text-right font-black text-white text-xl">${data.clicks || 0}</td></tr>`;
                 });
-            });
+            }, (err) => console.error("Dashboard load failed:", err));
         }
 
         window.navigate = (id) => {
@@ -409,7 +426,14 @@
         window.toggleFaq = (el) => { el.classList.toggle('active'); };
 
         window.onload = async () => {
-            await signInAnonymously(auth);
+            // Check auth state before anonymous sign in
+            if (!auth.currentUser) {
+                try {
+                    await signInAnonymously(auth);
+                } catch (e) {
+                    console.error("Anon sign-in failed", e);
+                }
+            }
             const diffDays = Math.floor(Math.abs(new Date() - LAUNCH_DATE) / (1000 * 60 * 60 * 24));
             document.getElementById('platform-age-main').innerText = `${diffDays} Days`;
             document.getElementById('current-year').innerText = new Date().getFullYear();
