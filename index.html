@@ -149,7 +149,6 @@
         <div class="hidden md:flex space-x-8 text-sm font-semibold items-center">
             <button onclick="navigate('home')" class="text-slate-300 hover:text-white transition">Home</button>
             <button onclick="navigate('prices')" class="text-slate-300 hover:text-white transition">Prices</button>
-            <button onclick="navigate('about')" class="text-slate-300 hover:text-white transition">About</button>
             <button id="nav-dash" onclick="navigate('dashboard')" class="hidden text-slate-300 hover:text-white transition">Dashboard</button>
             <button id="auth-btn" class="bg-purple-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-purple-500 transition shadow-lg shadow-purple-900/20">Login</button>
         </div>
@@ -210,6 +209,15 @@
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Platform Age</p>
                         <p id="platform-age-main" class="text-4xl font-black text-white">0 Days</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- About Section (Moved to Home Page) -->
+            <div class="py-24 fade-in-section max-w-4xl mx-auto space-y-12">
+                <h2 class="text-5xl font-black text-center text-white">About Us</h2>
+                <div class="glass-box p-12 rounded-[3rem] space-y-6 text-slate-300 leading-relaxed text-lg text-center">
+                    <p>ChiknzLink was founded in 2026 with a simple mission: make sharing links more professional and manageable for everyone.</p>
+                    <p>We believe that your links are an extension of your brand. Whether you're a content creator, a small business, or just sharing with friends, our tools are built to be fast, reliable, and beautiful.</p>
                 </div>
             </div>
 
@@ -303,22 +311,12 @@
                 </div>
             </div>
         </div>
-
-        <!-- About Page -->
-        <div id="page-about" class="page-section hidden py-24 max-w-3xl mx-auto space-y-12">
-            <h2 class="text-5xl font-black text-center text-white">About Us</h2>
-            <div class="glass-box p-12 rounded-[3rem] space-y-6 text-slate-300 leading-relaxed text-lg">
-                <p>ChiknzLink was founded in 2026 with a simple mission: make sharing links more professional and manageable for everyone.</p>
-                <p>We believe that your links are an extension of your brand. Whether you're a content creator, a small business, or just sharing with friends, our tools are built to be fast, reliable, and beautiful.</p>
-            </div>
-        </div>
     </main>
 
     <footer class="mt-24 py-12 border-t border-white/5 text-center space-y-6 relative">
         <div class="flex justify-center gap-8 text-slate-400 font-medium text-sm">
             <button onclick="navigate('home')">Home</button>
             <button onclick="navigate('prices')">Pricing</button>
-            <button onclick="navigate('about')">About</button>
         </div>
         <p class="text-slate-600 text-xs uppercase tracking-widest">&copy; ChiknzLink <span id="current-year"></span></p>
     </footer>
@@ -408,19 +406,15 @@
             }
         });
 
-        // FIXED: Firebase Initialization & Auth Flow
         async function initAuth() {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    // Rule 3: Always await initial token if provided
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
-                    // Fallback to anonymous if no token, ensuring a user context for stats
                     await signInAnonymously(auth);
                 }
             } catch (e) {
                 console.error("Auth init error:", e);
-                // Silent failure or retry logic could go here, but avoiding alert() as per instructions
             }
         }
 
@@ -538,7 +532,6 @@
             const diffDays = Math.floor(Math.abs(new Date() - LAUNCH_DATE) / (1000 * 60 * 60 * 24));
             document.getElementById('platform-age-main').innerText = `${diffDays} Days`;
             try {
-                // Rule 3 check: Only query after auth
                 if (!auth.currentUser) return;
                 const snapshot = await getCountFromServer(collection(db, 'artifacts', appId, 'public', 'data', 'links'));
                 document.getElementById('total-links-count').innerText = snapshot.data().count.toLocaleString();
@@ -551,7 +544,6 @@
             if (!isActive) el.classList.add('active');
         };
 
-        // Window load starts the app
         window.onload = () => {
             initAuth();
             updateStats();
