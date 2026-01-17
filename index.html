@@ -21,7 +21,7 @@
             margin: 0;
         }
         
-        /* Static Image Background - Restored */
+        /* Static Image Background */
         .bg-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -48,7 +48,6 @@
             backdrop-filter: blur(8px);
         }
 
-        /* FIXED: Changed opacity to 1 so UI is never blank */
         .fade-in-section {
             opacity: 1;
             transform: translateY(0);
@@ -63,6 +62,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease;
+            z-index: 100;
         }
         #auth-modal.active {
             opacity: 1;
@@ -115,7 +115,7 @@
     </div>
 
     <!-- Auth Modal -->
-    <div id="auth-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div id="auth-modal" class="fixed inset-0 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onclick="toggleModal(false)"></div>
         <div class="modal-container glass-box w-full max-w-md p-10 rounded-[2.5rem] relative z-10 text-center space-y-6">
             <button onclick="toggleModal(false)" class="absolute top-6 right-6 text-slate-500 hover:text-white transition">
@@ -126,7 +126,7 @@
             </div>
             <div class="space-y-2">
                 <h3 id="modal-title" class="text-3xl font-black text-white">Get Started</h3>
-                <p class="text-slate-400 text-sm">Sign in or create an account with Google to manage your links.</p>
+                <p class="text-slate-400 text-sm">Sign in with Google to manage your links.</p>
             </div>
             
             <div class="space-y-4">
@@ -177,7 +177,7 @@
                                 <div class="flex gap-2">
                                     <div class="relative flex-1">
                                         <select id="domain-selector" class="w-full bg-slate-100 border border-slate-200 rounded-2xl p-4 text-slate-900 font-bold appearance-none focus:outline-none">
-                                            <option value="netlify">Current Site Host</option>
+                                            <!-- Dynamic values populated here -->
                                         </select>
                                         <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M7.247 11.14 2.451 5.658C2.185 5.355 2.398 5 2.733 5h9.534c.335 0 .548.355.282.658l-4.796 5.482a.5.5 0 0 1-.772 0z"/></svg>
@@ -216,7 +216,6 @@
                 <h2 class="text-5xl font-black text-center text-white">About Us</h2>
                 <div class="glass-box p-12 rounded-[3rem] space-y-6 text-slate-300 leading-relaxed text-lg text-center">
                     <p>ChiknzLink was founded in 2026 with a simple mission: make sharing links more professional and manageable for everyone.</p>
-                    <p>We believe that your links are an extension of your brand. Our tools are built to be fast, reliable, and beautiful.</p>
                 </div>
             </div>
 
@@ -272,7 +271,6 @@
                     <p class="text-5xl font-black my-6 text-white">$0</p>
                     <ul class="space-y-4 text-slate-400">
                         <li>• 10 Links per month</li>
-                        <li>• 1 Custom domain</li>
                     </ul>
                 </div>
                 <div class="glass-box p-12 rounded-[3rem] border-purple-500 bg-purple-950/20">
@@ -280,7 +278,6 @@
                     <p class="text-5xl font-black my-6 text-white">$6.99</p>
                     <ul class="space-y-4 text-slate-300">
                         <li>• 200 Links per month</li>
-                        <li>• 3 Custom domains</li>
                     </ul>
                 </div>
             </div>
@@ -296,13 +293,12 @@
         import { getAuth, onAuthStateChanged, signOut, signInAnonymously, signInWithCredential, GoogleAuthProvider, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, serverTimestamp, deleteDoc, addDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
-        // Global variables provided by environment
-        const isCanvas = typeof __firebase_config !== 'undefined';
+        // APP CONFIG
+        const isCanvas = (typeof __firebase_config !== 'undefined' && __firebase_config !== '');
         const appId = isCanvas ? __app_id : 'chiknzlink-pro-v1';
         
-        // Use environment config if in Canvas, otherwise prompt/placeholder
         const firebaseConfig = isCanvas ? JSON.parse(__firebase_config) : {
-            apiKey: "", // IMPORTANT: Put your API Key here for Netlify
+            apiKey: "", // UPDATE THIS FOR NETLIFY
             authDomain: "chiknzlink.firebaseapp.com",
             projectId: "chiknzlink",
             storageBucket: "chiknzlink.appspot.com",
@@ -318,43 +314,22 @@
         const LAUNCH_DATE = new Date('2026-01-16');
         const CLIENT_ID = "60632449005-14pkjb4oi8jcanf487v57pst7dibgq01.apps.googleusercontent.com";
 
-        function showToast(msg) {
+        // UI HELPERS
+        window.showToast = (msg) => {
             const toast = document.getElementById('toast');
             toast.innerText = msg;
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
-        }
+        };
 
-        // REDIRECT LOGIC FOR NETLIFY
-        async function checkRedirect() {
-            const path = window.location.pathname.substring(1);
-            if (!path || path.includes('.') || path === 'dashboard' || path === 'prices') return;
+        window.toggleFaq = (el) => { el.classList.toggle('active'); };
 
-            try {
-                // Look up link by ID in the public collection
-                const linkDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'links', path));
-                if (linkDoc.exists()) {
-                    const data = linkDoc.data();
-                    // Increment click count
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'links', path), {
-                        clicks: increment(1)
-                    });
-                    // Also update in user's private collection if we have the UID
-                    // (Note: This is simpler to handle in a Cloud Function, but for this client-side demo we focus on the redirect)
-                    window.location.href = data.longUrl;
-                }
-            } catch (e) {
-                console.error("Redirect check failed", e);
-            }
-        }
-
-        // Navigation
         window.navigate = (id) => {
             document.querySelectorAll('.page-section').forEach(p => p.classList.add('hidden'));
             document.getElementById(`page-${id}`).classList.remove('hidden');
+            window.scrollTo(0,0);
         };
 
-        // Modal control
         window.toggleModal = (show) => {
             const modal = document.getElementById('auth-modal');
             modal.classList.toggle('active', show);
@@ -364,6 +339,7 @@
             }
         };
 
+        // AUTH LOGIC
         async function handleCredentialResponse(response) {
             const credential = GoogleAuthProvider.credential(response.credential);
             try {
@@ -376,37 +352,15 @@
             }
         }
 
-        // Domain Management
-        window.removeDomain = async (id) => { 
-            if (!currentUser) return;
-            await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'domains', id)); 
-        };
-
-        document.getElementById('add-domain-btn').addEventListener('click', async () => {
-            const input = document.getElementById('domain-input');
-            const sub = input.value.trim();
-            if (!sub || !currentUser) return;
-            const fullDomain = `${sub}.chiknz.link`;
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'domains'), {
-                    domain: fullDomain,
-                    createdAt: serverTimestamp()
-                });
-                input.value = '';
-                showToast("Subdomain added!");
-            } catch (e) {
-                console.error(e);
-                showToast("Failed to add domain.");
-            }
-        });
-
-        // Initialize Auth Pattern
         const initAuth = async () => {
             try {
                 if (isCanvas && typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
-                    if (!auth.currentUser) await signInAnonymously(auth);
+                    // On Netlify, we check if already logged in, otherwise stay as guest until they click login
+                    if (!auth.currentUser) {
+                        await signInAnonymously(auth);
+                    }
                 }
             } catch (error) {
                 console.error("Auth init failed:", error);
@@ -419,13 +373,18 @@
             document.getElementById('auth-btn').innerText = isGuest ? 'Login / Join' : 'Logout';
             document.getElementById('nav-dash').classList.toggle('hidden', isGuest);
             
+            // Populate domain selector with current host
+            const selector = document.getElementById('domain-selector');
+            selector.innerHTML = `<option value="${window.location.host}">${window.location.host}</option>`;
+            
             if (user) {
                 setupListeners(user);
             }
         });
 
+        // DATA LISTENERS
         function setupListeners(user) {
-            // Listen for Links
+            // Links
             onSnapshot(collection(db, 'artifacts', appId, 'users', user.uid, 'links'), (snap) => {
                 const body = document.getElementById('links-table-body');
                 body.innerHTML = '';
@@ -437,11 +396,12 @@
                 });
             }, (err) => console.error("Links listener error:", err));
 
-            // Listen for Domains
+            // Domains
             onSnapshot(collection(db, 'artifacts', appId, 'users', user.uid, 'domains'), (snap) => {
                 const list = document.getElementById('active-domains-list');
                 const selector = document.getElementById('domain-selector');
                 list.innerHTML = '';
+                // Keep the default
                 selector.innerHTML = `<option value="${window.location.host}">${window.location.host}</option>`;
                 snap.forEach(d => {
                     const data = d.data();
@@ -455,51 +415,48 @@
             }, (err) => console.error("Domains listener error:", err));
         }
 
+        // ACTIONS
         document.getElementById('shorten-btn').addEventListener('click', async () => {
-            if (!currentUser || currentUser.isAnonymous) return toggleModal(true);
-            const longUrl = document.getElementById('longUrl').value;
+            if (!currentUser || currentUser.isAnonymous) {
+                toggleModal(true);
+                return;
+            }
+            const longUrlInput = document.getElementById('longUrl');
+            const longUrl = longUrlInput.value.trim();
             const domain = document.getElementById('domain-selector').value;
-            if (!longUrl) return;
+            
+            if (!longUrl) {
+                showToast("Please enter a URL first.");
+                return;
+            }
+
             const id = Math.random().toString(36).substring(2, 8);
             const linkData = { longUrl, domain, id, clicks: 0, createdAt: serverTimestamp(), creator: currentUser.uid };
             
             try {
-                // Save to public for redirection and private for dashboard
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'links', id), linkData);
                 await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'links', id), linkData);
                 
-                const displayUrl = domain.includes('localhost') || domain.includes('netlify.app') 
-                    ? `${window.location.protocol}//${domain}/${id}`
-                    : `${domain}/${id}`;
-
+                const displayUrl = `${window.location.protocol}//${domain}/${id}`;
                 document.getElementById('shortResult').innerText = displayUrl;
                 document.getElementById('result-box').classList.remove('hidden');
+                longUrlInput.value = '';
                 showToast("Link created!");
             } catch (e) {
-                showToast("Shortening failed.");
+                showToast("Failed to create link.");
                 console.error(e);
             }
         });
 
-        window.handleAuthAction = async () => {
+        document.getElementById('auth-btn').addEventListener('click', async () => {
             if (currentUser && !currentUser.isAnonymous) {
                 await signOut(auth);
                 navigate('home');
+                showToast("Signed out.");
             } else {
                 toggleModal(true);
             }
-        };
-
-        document.getElementById('auth-btn').addEventListener('click', handleAuthAction);
-        window.toggleFaq = (el) => { el.classList.toggle('active'); };
-
-        window.onload = async () => {
-            await initAuth();
-            await checkRedirect(); // Run redirect check immediately on load
-            const diffDays = Math.floor(Math.abs(new Date() - LAUNCH_DATE) / (1000 * 60 * 60 * 24));
-            document.getElementById('platform-age-main').innerText = `${diffDays} Days`;
-            document.getElementById('current-year').innerText = new Date().getFullYear();
-        };
+        });
 
         document.getElementById('copy-btn').addEventListener('click', () => {
             const text = document.getElementById('shortResult').innerText;
@@ -507,6 +464,58 @@
             el.select(); document.execCommand('copy'); document.body.removeChild(el);
             showToast("Copied to clipboard!");
         });
+
+        document.getElementById('add-domain-btn').addEventListener('click', async () => {
+            const input = document.getElementById('domain-input');
+            const sub = input.value.trim();
+            if (!sub || !currentUser || currentUser.isAnonymous) return;
+            const fullDomain = `${sub}.chiknz.link`;
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'domains'), {
+                    domain: fullDomain,
+                    createdAt: serverTimestamp()
+                });
+                input.value = '';
+                showToast("Subdomain added!");
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
+        window.removeDomain = async (id) => { 
+            if (!currentUser) return;
+            await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'domains', id)); 
+        };
+
+        // REDIRECT LOGIC
+        async function checkRedirect() {
+            const path = window.location.pathname.substring(1);
+            // Ignore system paths
+            const reserved = ['', 'dashboard', 'prices', 'home'];
+            if (!path || reserved.includes(path) || path.includes('.')) return;
+
+            try {
+                const linkDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'links', path));
+                if (linkDoc.exists()) {
+                    const data = linkDoc.data();
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'links', path), {
+                        clicks: increment(1)
+                    });
+                    window.location.href = data.longUrl;
+                }
+            } catch (e) {
+                console.error("Redirect check failed", e);
+            }
+        }
+
+        // ON LOAD
+        window.onload = async () => {
+            await initAuth();
+            await checkRedirect();
+            const diffDays = Math.floor(Math.abs(new Date() - LAUNCH_DATE) / (1000 * 60 * 60 * 24));
+            document.getElementById('platform-age-main').innerText = `${diffDays} Days`;
+            document.getElementById('current-year').innerText = new Date().getFullYear();
+        };
     </script>
 </body>
 </html>
