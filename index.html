@@ -126,8 +126,8 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
             </div>
             <div class="space-y-2">
-                <h3 id="modal-title" class="text-3xl font-black text-white">Welcome</h3>
-                <p class="text-slate-400 text-sm">Join the ChiknzLink coop and start managing your links professionally.</p>
+                <h3 id="modal-title" class="text-3xl font-black text-white">Get Started</h3>
+                <p class="text-slate-400 text-sm">Sign in or create an account with Google to manage your links.</p>
             </div>
             
             <div class="space-y-4">
@@ -136,7 +136,7 @@
                 </div>
             </div>
             
-            <p class="text-xs text-slate-500">Signing in keeps your links secure and private in your own bucket.</p>
+            <p class="text-xs text-slate-500">Fast, secure, and free link management.</p>
         </div>
     </div>
 
@@ -328,10 +328,10 @@
         import { getAuth, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithCredential } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot, getCountFromServer, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
-        // Environment variables
+        // Global environment variables provided by system
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'chiknzlink-default';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "PASTE_YOUR_FIREBASE_API_KEY", 
+            apiKey: "", // Empty string as per instructions; system handles injection
             authDomain: "chiknzlink.firebaseapp.com",
             projectId: "chiknzlink",
             storageBucket: "chiknzlink.firebasestorage.app",
@@ -350,9 +350,6 @@
 
         // PUBLIC GOOGLE CLIENT ID
         const ACTUAL_CLIENT_ID = "60632449005-14pkjb4oi8jcanf487v57pst7dibgq01.apps.googleusercontent.com"; 
-
-        // Log origin for debugging origin_mismatch
-        console.log("App Origin (Add this to Google Console):", window.location.origin);
 
         function showToast(msg) {
             const toast = document.getElementById('toast');
@@ -380,7 +377,7 @@
                     });
                     google.accounts.id.renderButton(
                         document.getElementById("google-btn"),
-                        { theme: "outline", size: "large", shape: "pill", width: 280 }
+                        { theme: "outline", size: "large", shape: "pill", width: 280, text: "continue_with" }
                     );
                 } catch (err) {
                     console.error("GSI Init Error:", err);
@@ -393,9 +390,10 @@
                 const credential = GoogleAuthProvider.credential(response.credential);
                 await signInWithCredential(auth, credential);
                 toggleModal(false);
-                showToast("Welcome back!");
+                showToast("Success! You are now logged in.");
             } catch (error) {
-                showToast("Auth failed: " + error.message);
+                console.error("Firebase Auth Error:", error);
+                showToast("Connection Error. Please check console.");
             }
         }
 
@@ -410,22 +408,26 @@
             }
         });
 
+        // FIXED: Firebase Initialization & Auth Flow
         async function initAuth() {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    // Rule 3: Always await initial token if provided
                     await signInWithCustomToken(auth, __initial_auth_token);
-                } else if (!auth.currentUser) {
+                } else {
+                    // Fallback to anonymous if no token, ensuring a user context for stats
                     await signInAnonymously(auth);
                 }
             } catch (e) {
                 console.error("Auth init error:", e);
+                // Silent failure or retry logic could go here, but avoiding alert() as per instructions
             }
         }
 
         function updateUIForUser() {
             const isGuest = !currentUser || currentUser.isAnonymous;
             const authBtn = document.getElementById('auth-btn');
-            if (authBtn) authBtn.innerText = !isGuest ? 'Logout' : 'Login';
+            if (authBtn) authBtn.innerText = !isGuest ? 'Logout' : 'Login / Join';
             const navDash = document.getElementById('nav-dash');
             if (navDash) navDash.classList.toggle('hidden', isGuest);
         }
@@ -433,7 +435,7 @@
         window.handleAuthAction = async () => {
             if (currentUser && !currentUser.isAnonymous) {
                 await signOut(auth);
-                showToast("Logged out.");
+                showToast("Logged out safely.");
                 navigate('home');
             } else {
                 toggleModal(true);
@@ -443,7 +445,7 @@
         document.getElementById('auth-btn').addEventListener('click', handleAuthAction);
 
         function loadUserDomains() {
-            if (!currentUser) return;
+            if (!currentUser || currentUser.isAnonymous) return;
             const selector = document.getElementById('domain-selector');
             const list = document.getElementById('active-domains-list');
             const domainPath = `/artifacts/${appId}/users/${currentUser.uid}/domains`;
@@ -465,7 +467,7 @@
                     selector.appendChild(opt);
                 });
                 document.getElementById('domain-limit-stats').innerText = `${domains.length} / 1 used`;
-            });
+            }, (error) => console.error("Domain Snapshot Error:", error));
         }
 
         window.removeDomain = async (id) => { 
@@ -474,7 +476,7 @@
         };
 
         document.getElementById('add-domain-btn').addEventListener('click', async () => {
-            if (!currentUser || currentUser.isAnonymous) return showToast("Please login.");
+            if (!currentUser || currentUser.isAnonymous) return toggleModal(true);
             const sub = document.getElementById('domain-input').value.trim();
             if (!sub) return;
             const fullDomain = `${sub}.github.chiknz.link`;
@@ -505,7 +507,7 @@
         });
 
         function loadDashboardData() {
-            if (!currentUser) return;
+            if (!currentUser || currentUser.isAnonymous) return;
             const body = document.getElementById('links-table-body');
             unsubscribeLinks = onSnapshot(collection(db, `/artifacts/${appId}/users/${currentUser.uid}/links`), (snap) => {
                 body.innerHTML = '';
@@ -523,7 +525,7 @@
                         </tr>`;
                 });
                 document.getElementById('usage-stats').innerText = `Links: ${count}/10`;
-            });
+            }, (error) => console.error("Links Snapshot Error:", error));
         }
 
         window.navigate = (id) => {
@@ -536,6 +538,8 @@
             const diffDays = Math.floor(Math.abs(new Date() - LAUNCH_DATE) / (1000 * 60 * 60 * 24));
             document.getElementById('platform-age-main').innerText = `${diffDays} Days`;
             try {
+                // Rule 3 check: Only query after auth
+                if (!auth.currentUser) return;
                 const snapshot = await getCountFromServer(collection(db, 'artifacts', appId, 'public', 'data', 'links'));
                 document.getElementById('total-links-count').innerText = snapshot.data().count.toLocaleString();
             } catch (e) { document.getElementById('total-links-count').innerText = "0"; }
@@ -547,14 +551,17 @@
             if (!isActive) el.classList.add('active');
         };
 
-        initAuth();
-        updateStats();
-        document.getElementById('current-year').innerText = new Date().getFullYear();
-        document.querySelectorAll('.fade-in-section').forEach(el => {
-            new IntersectionObserver((entries) => {
-                entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); });
-            }).observe(el);
-        });
+        // Window load starts the app
+        window.onload = () => {
+            initAuth();
+            updateStats();
+            document.getElementById('current-year').innerText = new Date().getFullYear();
+            document.querySelectorAll('.fade-in-section').forEach(el => {
+                new IntersectionObserver((entries) => {
+                    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); });
+                }).observe(el);
+            });
+        };
 
         document.getElementById('copy-btn').addEventListener('click', () => {
             const text = document.getElementById('shortResult').innerText;
