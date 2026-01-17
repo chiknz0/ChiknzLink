@@ -17,20 +17,22 @@
             color: #f1f5f9;
             scroll-behavior: smooth;
             overflow-x: hidden;
+            min-height: 100vh;
         }
         
         .video-bg-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1; overflow: hidden;
+            background-color: #0f172a; /* Fallback color */
         }
         .video-bg-container video {
             min-width: 100%; min-height: 100%;
-            object-fit: cover; opacity: 0.5;
+            object-fit: cover; opacity: 0.4;
         }
         .video-overlay {
             position: absolute; inset: 0;
-            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.7), #0f172a);
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.8), #0f172a);
         }
 
         .glass-box {
@@ -54,7 +56,7 @@
             transform: translateY(0);
         }
         .hero-height {
-            min-height: calc(100vh - 120px);
+            min-height: 80vh; /* Changed from calc for better mobile/GH compatibility */
         }
         
         #auth-modal {
@@ -109,8 +111,9 @@
     <div id="toast" class="toast glass-box"></div>
 
     <div class="video-bg-container">
+        <!-- Replaced with a more standard placeholder video URL often used for testing -->
         <video autoplay muted loop playsinline poster="https://i.postimg.cc/wx2T45vs/night-sky-6245049-640.jpg">
-            <source src="https://go.screenpal.com/watch/cOVbV1nrsfR" type="video/mp4">
+            <source src="https://assets.mixkit.co/videos/preview/mixkit-stars-in-the-night-sky-11604-large.mp4" type="video/mp4">
         </video>
         <div class="video-overlay"></div>
     </div>
@@ -154,7 +157,7 @@
         </div>
     </nav>
 
-    <main class="container mx-auto px-4 max-w-6xl">
+    <main class="container mx-auto px-4 max-w-6xl relative z-10">
         <!-- Home Page -->
         <div id="page-home" class="page-section">
             <div class="flex flex-col lg:flex-row items-center gap-16 hero-height py-12 px-6">
@@ -212,7 +215,7 @@
                 </div>
             </div>
 
-            <!-- About Section (Moved to Home Page) -->
+            <!-- About Section -->
             <div class="py-24 fade-in-section max-w-4xl mx-auto space-y-12">
                 <h2 class="text-5xl font-black text-center text-white">About Us</h2>
                 <div class="glass-box p-12 rounded-[3rem] space-y-6 text-slate-300 leading-relaxed text-lg text-center">
@@ -313,7 +316,7 @@
         </div>
     </main>
 
-    <footer class="mt-24 py-12 border-t border-white/5 text-center space-y-6 relative">
+    <footer class="mt-24 py-12 border-t border-white/5 text-center space-y-6 relative z-10">
         <div class="flex justify-center gap-8 text-slate-400 font-medium text-sm">
             <button onclick="navigate('home')">Home</button>
             <button onclick="navigate('prices')">Pricing</button>
@@ -326,10 +329,10 @@
         import { getAuth, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithCredential } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot, getCountFromServer, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
-        // Global environment variables provided by system
+        // Global environment variables
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'chiknzlink-default';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "", // Empty string as per instructions; system handles injection
+            apiKey: "", 
             authDomain: "chiknzlink.firebaseapp.com",
             projectId: "chiknzlink",
             storageBucket: "chiknzlink.firebasestorage.app",
@@ -346,7 +349,6 @@
         let unsubscribeDomains = null;
         const LAUNCH_DATE = new Date('2026-01-16');
 
-        // PUBLIC GOOGLE CLIENT ID
         const ACTUAL_CLIENT_ID = "60632449005-14pkjb4oi8jcanf487v57pst7dibgq01.apps.googleusercontent.com"; 
 
         function showToast(msg) {
@@ -548,11 +550,17 @@
             initAuth();
             updateStats();
             document.getElementById('current-year').innerText = new Date().getFullYear();
-            document.querySelectorAll('.fade-in-section').forEach(el => {
-                new IntersectionObserver((entries) => {
-                    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); });
-                }).observe(el);
-            });
+            
+            // Re-trigger intersection observer for visibility
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => { 
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.fade-in-section').forEach(el => observer.observe(el));
         };
 
         document.getElementById('copy-btn').addEventListener('click', () => {
